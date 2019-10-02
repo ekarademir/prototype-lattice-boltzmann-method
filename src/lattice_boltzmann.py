@@ -4,7 +4,9 @@ import numpy as np
 LATTICE_SIZE = 50
 E = [[1.0, 0.0, -1.0,  0.0, 1.0, -1.0, -1.0,  1.0],
      [0.0, 1.0,  0.0, -1.0, 1.0,  1.0, -1.0, -1.0]]
-C = 1.0
+DX = 1.0
+DT = 1.0
+C = DX / DT
 
 
 def calculate_rho(ns):
@@ -19,6 +21,10 @@ def calculate_u(ns, rho, axis=0):
     for i, n in enumerate(ns):
         r += C * E[axis][i] * n / rho
     return r
+
+
+def stream(ns):
+    pass
 
 
 def main():
@@ -37,6 +43,7 @@ def main():
     ns[6] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     ns[7] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     ns[8] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neq = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
 
 
 if __name__ == '__main__':
