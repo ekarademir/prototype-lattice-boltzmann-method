@@ -31,6 +31,10 @@ def stream(ns: List[np.ndarray]):
     for i, n in enumerate(ns):
         ecol, erow = int(E[0][i]), int(E[1][i])
         ncol, nrow = n.shape
+        if i == 4:
+            breakpoint()
+        row_fill_len = ncol - abs(ecol)
+        col_fill_len = nrow - abs(erow)
         row_fill = np.zeros((1, ncol))
         col_fill = np.zeros((nrow, 1))
         # `erow` can be -1, 0, or 1
@@ -39,6 +43,7 @@ def stream(ns: List[np.ndarray]):
         col_shift_slice = slice(0, ncol - ecol) if ecol >= 0 else slice(1, ncol)
         n = n[row_shift_slice, col_shift_slice]
         # row direction should be inverted
+        # Create zeros and then fill in the truncated array appropriately
         if erow == -1:
             n = np.concatenate([row_fill, n], axis=0)
         elif erow == 1:
