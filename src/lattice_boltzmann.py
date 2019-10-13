@@ -29,29 +29,21 @@ def calculate_u(ns, rho, axis=0):
 def stream(ns: List[np.ndarray]):
     r = []
     for i, n in enumerate(ns):
-        ecol, erow = int(E[0][i]), int(E[1][i])
+        # row shift means y direction. Also y is inverted
+        shift_row, shift_col = -int(E[1][i]), int(E[0][i])
         ncol, nrow = n.shape
-        if i == 4:
-            breakpoint()
-        row_fill_len = ncol - abs(ecol)
-        col_fill_len = nrow - abs(erow)
-        row_fill = np.zeros((1, ncol))
-        col_fill = np.zeros((nrow, 1))
-        # `erow` can be -1, 0, or 1
-        # row direction should be inverted
-        row_shift_slice = slice(erow, nrow) if erow >= 0 else slice(0, nrow + erow)
-        col_shift_slice = slice(0, ncol - ecol) if ecol >= 0 else slice(1, ncol)
-        n = n[row_shift_slice, col_shift_slice]
-        # row direction should be inverted
-        # Create zeros and then fill in the truncated array appropriately
-        if erow == -1:
-            n = np.concatenate([row_fill, n], axis=0)
-        elif erow == 1:
-            n = np.concatenate([n, row_fill], axis=0)
-        if ecol == 1:
-            n = np.concatenate([col_fill, n], axis=1)
-        elif ecol == -1:
-            n = np.concatenate([n, col_fill], axis=1)
+        # shift values according to unit vectors
+        n = np.roll(n, (shift_row, shift_col), axis=(0, 1))
+        # fill in zeros at empty places otherwise roll
+        # uses continuous BC
+        if shift_col == -1:
+            n[:, -1] = 0
+        elif shift_col == 1:
+            n[:, 0] = 0
+        if shift_row == -1:
+            n[-1, :] = 0
+        elif shift_row == 1:
+            n[0, :] = 0
         r.append(n)
     return r
 
@@ -61,7 +53,7 @@ def test_stream():
         [1, 2, 3],
         [4, 5, 6],
         [7, 8, 9],
-    ])] * 5
+    ])] * 9
     expected = [
         np.array([
             [0, 1, 2],
@@ -87,6 +79,26 @@ def test_stream():
             [0, 4, 5],
             [0, 7, 8],
             [0, 0, 0],
+        ]),
+        np.array([
+            [5, 6, 0],
+            [8, 9, 0],
+            [0, 0, 0],
+        ]),
+        np.array([
+            [0, 0, 0],
+            [2, 3, 0],
+            [5, 6, 0],
+        ]),
+        np.array([
+            [0, 0, 0],
+            [0, 1, 2],
+            [0, 4, 5],
+        ]),
+        np.array([
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
         ]),
     ]
     actual = stream(specimen)
