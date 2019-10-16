@@ -4,9 +4,9 @@ import numpy as np
 
 
 LATTICE_SIZE = 50
-#     e1   e2    e3    e4   e5    e6    e7    e8   e0
-E = [[1.0, 0.0, -1.0,  0.0, 1.0, -1.0, -1.0,  1.0, 0.0],
-     [0.0, 1.0,  0.0, -1.0, 1.0,  1.0, -1.0, -1.0, 0.0]]
+#     e0   e1   e2    e3    e4   e5    e6    e7    e8  
+E = [[0.0, 1.0, 0.0, -1.0,  0.0, 1.0, -1.0, -1.0,  1.0],
+     [0.0, 0.0, 1.0,  0.0, -1.0, 1.0,  1.0, -1.0, -1.0]]
 DX = 1.0
 DT = 1.0
 C = DX / DT
@@ -28,6 +28,50 @@ def calculate_u(ns, rho, axis=0):
 
 def stream(ns: List[np.ndarray]):
     r = []
+    ncol, nrow = ns[0].shape
+    for i, n in enumerate(ns):
+        # row shift means y direction. Also y is inverted
+        shift_row, shift_col = -int(E[1][i]), int(E[0][i])
+        # shift values according to unit vectors
+        n_new = np.roll(n, (shift_row, shift_col), axis=(0, 1))
+        # fill in zeros at empty places otherwise roll
+        # uses continuous BC
+        if shift_col == -1:
+            n_new[:, -1] = 0
+        elif shift_col == 1:
+            n_new[:, 0] = 0
+        if shift_row == -1:
+            n_new[-1, :] = 0
+        elif shift_row == 1:
+            n_new[0, :] = 0
+        r.append(n_new)
+    # collisions
+    # e1 -> e3 at east wall
+    r[3][:, -1] += ns[1][:, -1]
+    # e2 -> e4 at north wall
+    r[4][0, :] += ns[2][0, :]
+    # e3 -> e1 at west wall
+    r[1][:, 0] += ns[3][:, 0]
+    # e4 -> e2 at south wall
+    r[2][-1, :] += ns[4][-1, :]
+    # e5 -> e7 at east and north wall
+    r[7][:, -1] += ns[5][:, -1]
+    r[7][0, :-1] += ns[5][0, :-1]
+    # e6 -> e8 at west and north wall
+    r[8][:, 0] += ns[6][:, 0]
+    r[8][0, 1:] += ns[6][0, 1:]
+    # e7 -> e5 at west and south wall
+    r[5][:, 0] += ns[7][:, 0]
+    r[5][-1, 1:] += ns[7][-1, 1:]
+    # e8 -> e6 at east and south wall
+    r[6][:, -1] += ns[8][:, -1]
+    r[6][-1, :-1] += ns[8][-1, :-1]
+
+    return r
+
+
+def stream_old(ns: List[np.ndarray]):
+    r = []
     for i, n in enumerate(ns):
         # row shift means y direction. Also y is inverted
         shift_row, shift_col = -int(E[1][i]), int(E[0][i])
@@ -48,6 +92,64 @@ def stream(ns: List[np.ndarray]):
     return r
 
 
+def test_stream_old():
+    specimen = [np.array([
+        [1, 2, 3],
+        [4, 5, 6],
+        [7, 8, 9],
+    ])] * 9
+    expected = [
+        np.array([
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+        ]),
+        np.array([
+            [0, 1, 2],
+            [0, 4, 5],
+            [0, 7, 8],
+        ]),
+        np.array([
+            [4, 5, 6],
+            [7, 8, 9],
+            [0, 0, 0],
+        ]),
+        np.array([
+            [2, 3, 0],
+            [5, 6, 0],
+            [8, 9, 0],
+        ]),
+        np.array([
+            [0, 0, 0],
+            [1, 2, 3],
+            [4, 5, 6],
+        ]),
+        np.array([
+            [0, 4, 5],
+            [0, 7, 8],
+            [0, 0, 0],
+        ]),
+        np.array([
+            [5, 6, 0],
+            [8, 9, 0],
+            [0, 0, 0],
+        ]),
+        np.array([
+            [0, 0, 0],
+            [2, 3, 0],
+            [5, 6, 0],
+        ]),
+        np.array([
+            [0, 0, 0],
+            [0, 1, 2],
+            [0, 4, 5],
+        ]),
+    ]
+    actual = stream_old(specimen)
+    for i in range(len(specimen)):
+        np.testing.assert_array_equal(actual[i], expected[i], err_msg=f'For array at index {i}')
+
+
 def test_stream():
     specimen = [np.array([
         [1, 2, 3],
@@ -56,49 +158,49 @@ def test_stream():
     ])] * 9
     expected = [
         np.array([
-            [0, 1, 2],
-            [0, 4, 5],
-            [0, 7, 8],
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+        ]),
+        np.array([
+            [1, 1, 2],
+            [4, 4, 5],
+            [7, 7, 8],
         ]),
         np.array([
             [4, 5, 6],
             [7, 8, 9],
-            [0, 0, 0],
-        ]),
-        np.array([
-            [2, 3, 0],
-            [5, 6, 0],
-            [8, 9, 0],
-        ]),
-        np.array([
-            [0, 0, 0],
-            [1, 2, 3],
-            [4, 5, 6],
-        ]),
-        np.array([
-            [0, 4, 5],
-            [0, 7, 8],
-            [0, 0, 0],
-        ]),
-        np.array([
-            [5, 6, 0],
-            [8, 9, 0],
-            [0, 0, 0],
-        ]),
-        np.array([
-            [0, 0, 0],
-            [2, 3, 0],
-            [5, 6, 0],
-        ]),
-        np.array([
-            [0, 0, 0],
-            [0, 1, 2],
-            [0, 4, 5],
-        ]),
-        np.array([
-            [1, 2, 3],
-            [4, 5, 6],
             [7, 8, 9],
+        ]),
+        np.array([
+            [2, 3, 3],
+            [5, 6, 6],
+            [8, 9, 9],
+        ]),
+        np.array([
+            [1, 2, 3],
+            [1, 2, 3],
+            [4, 5, 6],
+        ]),
+        np.array([
+            [1, 4, 5],
+            [4, 7, 8],
+            [7, 8, 9],
+        ]),
+        np.array([
+            [5, 6, 3],
+            [8, 9, 6],
+            [7, 8, 9],
+        ]),
+        np.array([
+            [1, 2, 3],
+            [2, 3, 6],
+            [5, 6, 9],
+        ]),
+        np.array([
+            [1, 2, 3],
+            [4, 1, 2],
+            [7, 4, 5],
         ]),
     ]
     actual = stream(specimen)
@@ -127,6 +229,7 @@ def main():
 
 def tests():
     test_stream()
+    test_stream_old()
 
 
 if __name__ == '__main__':
