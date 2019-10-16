@@ -45,7 +45,7 @@ def stream(ns: List[np.ndarray]):
         elif shift_row == 1:
             n_new[0, :] = 0
         r.append(n_new)
-    # collisions
+    # mid-grid BC
     # e1 -> e3 at east wall
     r[3][:, -1] += ns[1][:, -1]
     # e2 -> e4 at north wall
