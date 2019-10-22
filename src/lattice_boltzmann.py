@@ -89,6 +89,13 @@ def test_calculate_u():
     np.testing.assert_array_equal(actual_uy, expected_uy, "uy calculation false")
 
 
+def test_calculate_rho():
+    specimen = [np.ones((2, 2))] * 4
+    expected = np.ones((2, 2)) * 4.0
+    actual = calculate_rho(specimen)
+    np.testing.assert_array_equal(actual, expected, "rho calculation false")
+
+
 def test_stream():
     specimen = [np.array([
         [1, 2, 3],
