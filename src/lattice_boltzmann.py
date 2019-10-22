@@ -13,19 +13,26 @@ DT = 1.0
 C = DX / DT
 
 
-def si(i, u, axis=0):
+def si(i, ui: List[np.ndarray], axis=0):
     wi = W[i]
+    udotu = ui * ui
+    edotu = E[axis][i] * ui
+    return wi * (
+            3.0 * edotu / C
+            + 9.0 * edotu**2 / (2.0 * C**2)
+            - 3.0 * udotu / (2.0 * C**2)
+        )
 
 
 def calculate_rho(ns):
-    r = np.ndarray(ns[0].shape)
+    r = np.zeros(ns[0].shape)
     for n in ns:
         r += n
     return r
 
 
-def calculate_u(ns, rho, axis=0):
-    r = np.ndarray(ns[0].shape)
+def calculate_u(ns, rho: np.ndarray, axis=0):
+    r = np.zeros(ns[0].shape)
     for i, n in enumerate(ns):
         r += C * E[axis][i] * n
     return r / rho
@@ -79,6 +86,10 @@ def stream(ns: List[np.ndarray]):
     return r
 
 
+def test_si():
+    pass
+
+
 def test_calculate_u():
     specimen = [np.ones((2, 2))] * 9
     expected_ux = np.zeros((2, 2))
@@ -90,8 +101,8 @@ def test_calculate_u():
 
 
 def test_calculate_rho():
-    specimen = [np.ones((2, 2))] * 4
-    expected = np.ones((2, 2)) * 4.0
+    specimen = [np.ones((2, 2))] * 9
+    expected = np.ones((2, 2)) * 9.0
     actual = calculate_rho(specimen)
     np.testing.assert_array_equal(actual, expected, "rho calculation false")
 
@@ -176,7 +187,8 @@ def main():
 def tests():
     test_stream()
     test_calculate_u()
-
+    test_calculate_rho()
+    test_si()
 
 if __name__ == '__main__':
     # main()
