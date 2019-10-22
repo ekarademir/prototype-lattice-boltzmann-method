@@ -30,7 +30,7 @@ def calculate_rho(ns) -> np.ndarray:
     return r
 
 
-def calculate_u(ns, rho: np.ndarray, axis: int = 0) -> np.ndarray:
+def calculate_ui(ns, rho: np.ndarray, axis: int = 0) -> np.ndarray:
     r = np.zeros(ns[0].shape)
     for i, n in enumerate(ns):
         r += C * E[axis][i] * n
@@ -86,12 +86,12 @@ def stream(ns: List[np.ndarray]) -> List[np.ndarray]:
     return r
 
 
-def test_calculate_u():
+def test_calculate_ui():
     specimen = [np.ones((2, 2))] * 9
     expected_ux = np.zeros((2, 2))
     expected_uy = np.zeros((2, 2))
-    actual_ux = calculate_u(specimen, 1.0, 0)
-    actual_uy = calculate_u(specimen, 1.0, 1)
+    actual_ux = calculate_ui(specimen, 1.0, 0)
+    actual_uy = calculate_ui(specimen, 1.0, 1)
     np.testing.assert_array_equal(actual_ux, expected_ux, "ux calculation false")
     np.testing.assert_array_equal(actual_uy, expected_uy, "uy calculation false")
 
@@ -182,7 +182,7 @@ def main():
 
 def tests():
     test_stream()
-    test_calculate_u()
+    test_calculate_ui()
     test_calculate_rho()
 
 if __name__ == '__main__':
