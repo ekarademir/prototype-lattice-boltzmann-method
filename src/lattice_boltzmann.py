@@ -43,11 +43,11 @@ def calculate_nieq(i: int, ui: List[np.ndarray], rho: np.ndarray, axis: int = 0)
     return wi * rho * (1 + si(i, ui, axis))
 
 
-def collide(ns: List[np.ndarray], nieq: np.ndarray) -> List[np.ndarray]:
+def collide(ns: List[np.ndarray], neq: List[np.ndarray]) -> List[np.ndarray]:
     r = []
     for i, n in enumerate(ns):
         r.append(
-            n - (n - nieq) / TAU
+            n - (n - neq[i]) / TAU
         )
     return r
 
@@ -172,22 +172,71 @@ def test_stream():
 
 
 def main():
-    rho = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    # STEP 1: Initialize
+    rhox = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    rhoy = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     ux = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     uy = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    # Discrete probablilities for each nine directions for each axis
+    nsx = []
+    nsx[0] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsx[1] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsx[2] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsx[3] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsx[4] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsx[5] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsx[6] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsx[7] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsx[8] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy = []
+    nsy[0] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy[1] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy[2] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy[3] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy[4] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy[5] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy[6] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy[7] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    nsy[8] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx = []
+    neqx[0] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx[1] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx[2] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx[3] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx[4] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx[5] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx[6] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx[7] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqx[8] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy = []
+    neqy[0] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy[1] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy[2] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy[3] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy[4] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy[5] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy[6] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy[7] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    neqy[8] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
 
-    # Discrete probablilities for each nine directions
-    ns = []
-    ns[0] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ns[1] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ns[2] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ns[3] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ns[4] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ns[5] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ns[6] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ns[7] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ns[8] = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    neq = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    # STEP 2: Streaming
+    nsx = stream(nsx)
+    nsy = stream(nsy)
+
+    # STEP 3: Compute macroscopic entities
+    rhox = calculate_rho(nsx)
+    rhoy = calculate_rho(nsy)
+    ux = calculate_ui(nsx, rhox, axis=0)
+    uy = calculate_ui(nsy, rhoy, axis=1)
+
+    # STEP 4: Compute equilibrium number density
+    for i in range(len(neqx)):
+        neqx[i] = calculate_nieq(i, ux[i], rhox, 0)
+        neqy[i] = calculate_nieq(i, uy[i], rhox, 1)
+    
+    # STEP 5: Collision
+    nsx = collide(nsx, neqx)
+    nsy = collide(nsx, neqy)
 
 
 def tests():
