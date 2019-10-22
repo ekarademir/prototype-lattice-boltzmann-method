@@ -7,9 +7,14 @@ LATTICE_SIZE = 50
 #     e0   e1   e2    e3    e4   e5    e6    e7    e8  
 E = [[0.0, 1.0, 0.0, -1.0,  0.0, 1.0, -1.0, -1.0,  1.0],
      [0.0, 0.0, 1.0,  0.0, -1.0, 1.0,  1.0, -1.0, -1.0]]
+W = [4 / 9] + [1 / 9] * 4 + [1 / 36] * 4
 DX = 1.0
 DT = 1.0
 C = DX / DT
+
+
+def si(i, u, axis=0):
+    wi = W[i]
 
 
 def calculate_rho(ns):
@@ -22,8 +27,12 @@ def calculate_rho(ns):
 def calculate_u(ns, rho, axis=0):
     r = np.ndarray(ns[0].shape)
     for i, n in enumerate(ns):
-        r += C * E[axis][i] * n / rho
-    return r
+        r += C * E[axis][i] * n
+    return r / rho
+
+
+def calculate_nieq(i, u):
+    pass
 
 
 def stream(ns: List[np.ndarray]):
@@ -70,84 +79,14 @@ def stream(ns: List[np.ndarray]):
     return r
 
 
-def stream_old(ns: List[np.ndarray]):
-    r = []
-    for i, n in enumerate(ns):
-        # row shift means y direction. Also y is inverted
-        shift_row, shift_col = -int(E[1][i]), int(E[0][i])
-        ncol, nrow = n.shape
-        # shift values according to unit vectors
-        n = np.roll(n, (shift_row, shift_col), axis=(0, 1))
-        # fill in zeros at empty places otherwise roll
-        # uses continuous BC
-        if shift_col == -1:
-            n[:, -1] = 0
-        elif shift_col == 1:
-            n[:, 0] = 0
-        if shift_row == -1:
-            n[-1, :] = 0
-        elif shift_row == 1:
-            n[0, :] = 0
-        r.append(n)
-    return r
-
-
-def test_stream_old():
-    specimen = [np.array([
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-    ])] * 9
-    expected = [
-        np.array([
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9],
-        ]),
-        np.array([
-            [0, 1, 2],
-            [0, 4, 5],
-            [0, 7, 8],
-        ]),
-        np.array([
-            [4, 5, 6],
-            [7, 8, 9],
-            [0, 0, 0],
-        ]),
-        np.array([
-            [2, 3, 0],
-            [5, 6, 0],
-            [8, 9, 0],
-        ]),
-        np.array([
-            [0, 0, 0],
-            [1, 2, 3],
-            [4, 5, 6],
-        ]),
-        np.array([
-            [0, 4, 5],
-            [0, 7, 8],
-            [0, 0, 0],
-        ]),
-        np.array([
-            [5, 6, 0],
-            [8, 9, 0],
-            [0, 0, 0],
-        ]),
-        np.array([
-            [0, 0, 0],
-            [2, 3, 0],
-            [5, 6, 0],
-        ]),
-        np.array([
-            [0, 0, 0],
-            [0, 1, 2],
-            [0, 4, 5],
-        ]),
-    ]
-    actual = stream_old(specimen)
-    for i in range(len(specimen)):
-        np.testing.assert_array_equal(actual[i], expected[i], err_msg=f'For array at index {i}')
+def test_calculate_u():
+    specimen = [np.ones((2, 2))] * 9
+    expected_ux = np.zeros((2, 2))
+    expected_uy = np.zeros((2, 2))
+    actual_ux = calculate_u(specimen, 1.0, 0)
+    actual_uy = calculate_u(specimen, 1.0, 1)
+    np.testing.assert_array_equal(actual_ux, expected_ux, "ux calculation false")
+    np.testing.assert_array_equal(actual_uy, expected_uy, "uy calculation false")
 
 
 def test_stream():
@@ -229,7 +168,7 @@ def main():
 
 def tests():
     test_stream()
-    test_stream_old()
+    test_calculate_u()
 
 
 if __name__ == '__main__':
