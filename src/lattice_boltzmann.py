@@ -13,7 +13,7 @@ DT = 1.0
 C = DX / DT
 
 
-def si(i, ui: List[np.ndarray], axis=0):
+def si(i, ui: List[np.ndarray], axis=0) -> np.ndarray:
     wi = W[i]
     udotu = ui * ui
     edotu = E[axis][i] * ui
@@ -24,25 +24,25 @@ def si(i, ui: List[np.ndarray], axis=0):
         )
 
 
-def calculate_rho(ns):
+def calculate_rho(ns) -> np.ndarray:
     r = np.zeros(ns[0].shape)
     for n in ns:
         r += n
     return r
 
 
-def calculate_u(ns, rho: np.ndarray, axis=0):
+def calculate_u(ns, rho: np.ndarray, axis=0) -> np.ndarray:
     r = np.zeros(ns[0].shape)
     for i, n in enumerate(ns):
         r += C * E[axis][i] * n
     return r / rho
 
 
-def calculate_nieq(i, u):
+def calculate_nieq(i, ui: List[np.ndarray], rho: np.ndarray):
     pass
 
 
-def stream(ns: List[np.ndarray]):
+def stream(ns: List[np.ndarray]) -> List[np.ndarray]:
     r = []
     ncol, nrow = ns[0].shape
     for i, n in enumerate(ns):
@@ -84,10 +84,6 @@ def stream(ns: List[np.ndarray]):
     r[6][-1, :-1] += ns[8][-1, :-1]
 
     return r
-
-
-def test_si():
-    pass
 
 
 def test_calculate_u():
@@ -188,7 +184,6 @@ def tests():
     test_stream()
     test_calculate_u()
     test_calculate_rho()
-    test_si()
 
 if __name__ == '__main__':
     # main()
