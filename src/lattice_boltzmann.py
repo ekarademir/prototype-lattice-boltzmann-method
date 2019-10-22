@@ -11,6 +11,7 @@ W = [4 / 9] + [1 / 9] * 4 + [1 / 36] * 4
 DX = 1.0
 DT = 1.0
 C = DX / DT
+TAU = 1.0
 
 
 def si(i: int, ui: List[np.ndarray], axis: int = 0) -> np.ndarray:
@@ -40,6 +41,15 @@ def calculate_ui(ns, rho: np.ndarray, axis: int = 0) -> np.ndarray:
 def calculate_nieq(i: int, ui: List[np.ndarray], rho: np.ndarray, axis: int = 0):
     wi = W[i]
     return wi * rho * (1 + si(i, ui, axis))
+
+
+def collide(ns: List[np.ndarray], nieq: np.ndarray) -> List[np.ndarray]:
+    r = []
+    for i, n in enumerate(ns):
+        r.append(
+            n - (n - nieq) / TAU
+        )
+    return r
 
 
 def stream(ns: List[np.ndarray]) -> List[np.ndarray]:
