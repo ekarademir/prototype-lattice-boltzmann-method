@@ -13,7 +13,7 @@ DT = 1.0
 C = DX / DT
 
 
-def si(i, ui: List[np.ndarray], axis=0) -> np.ndarray:
+def si(i, ui: List[np.ndarray], axis: int = 0) -> np.ndarray:
     wi = W[i]
     udotu = ui * ui
     edotu = E[axis][i] * ui
@@ -31,14 +31,14 @@ def calculate_rho(ns) -> np.ndarray:
     return r
 
 
-def calculate_u(ns, rho: np.ndarray, axis=0) -> np.ndarray:
+def calculate_u(ns, rho: np.ndarray, axis: int = 0) -> np.ndarray:
     r = np.zeros(ns[0].shape)
     for i, n in enumerate(ns):
         r += C * E[axis][i] * n
     return r / rho
 
 
-def calculate_nieq(i, ui: List[np.ndarray], rho: np.ndarray):
+def calculate_nieq(i, ui: List[np.ndarray], rho: np.ndarray, axis: int = 0):
     pass
 
 
