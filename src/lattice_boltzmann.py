@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 LATTICE_SIZE = 50
@@ -14,9 +15,9 @@ C = DX / DT
 TAU = 1.0
 
 
-def si(i: int, ui: List[np.ndarray], axis: int = 0) -> np.ndarray:
-    udotu = ui * ui
-    edotu = E[axis][i] * ui
+def si(i: int, ux: List[np.ndarray], uy: List[np.ndarray]) -> np.ndarray:
+    udotu = ux * ux + uy * uy
+    edotu = E[0][i] * ux + E[1][i] * uy
     return (
             3.0 * edotu / C
             + 9.0 * edotu**2 / (2.0 * C**2)
@@ -38,9 +39,9 @@ def calculate_ui(ns, rho: np.ndarray, axis: int = 0) -> np.ndarray:
     return r / rho
 
 
-def calculate_nieq(i: int, ui: List[np.ndarray], rho: np.ndarray, axis: int = 0):
+def calculate_nieq(i: int, ux: List[np.ndarray], uy: List[np.ndarray], rho: np.ndarray):
     wi = W[i]
-    return wi * rho * (1 + si(i, ui, axis))
+    return wi * rho * (1 + si(i, ux, uy))
 
 
 def collide(ns: List[np.ndarray], neq: List[np.ndarray]) -> List[np.ndarray]:
@@ -173,70 +174,50 @@ def test_stream():
 
 def main():
     # STEP 1: Initialize
-    rhox = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    rhoy = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    rho = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     ux = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     uy = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     # Discrete probablilities for each nine directions for each axis
-    nsx = []
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy = []
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    nsy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx = []
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqx.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy = []
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neqy.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns = []
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq = []
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+
+    # Figure related plumbing
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    # im = ax.imshow
 
     # STEP 2: Streaming
-    nsx = stream(nsx)
-    nsy = stream(nsy)
+    ns = stream(ns)
 
     # STEP 3: Compute macroscopic entities
-    rhox = calculate_rho(nsx)
-    rhoy = calculate_rho(nsy)
-    ux = calculate_ui(nsx, rhox, axis=0)
-    uy = calculate_ui(nsy, rhoy, axis=1)
+    rho = calculate_rho(ns)
+    ux = calculate_ui(ns, rho, axis=0)
+    uy = calculate_ui(ns, rho, axis=1)
 
     # STEP 4: Compute equilibrium number density
-    for i in range(len(neqx)):
-        neqx[i] = calculate_nieq(i, ux[i], rhox, 0)
-        neqy[i] = calculate_nieq(i, uy[i], rhox, 1)
+    for i in range(len(neq)):
+        neq[i] = calculate_nieq(i, ux[i], uy[i], rho)
     
     # STEP 5: Collision
-    nsx = collide(nsx, neqx)
-    nsy = collide(nsx, neqy)
+    ns = collide(ns, neq)
 
 
 def tests():
