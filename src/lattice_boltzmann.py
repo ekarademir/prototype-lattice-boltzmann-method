@@ -13,11 +13,10 @@ DT = 1.0
 C = DX / DT
 
 
-def si(i, ui: List[np.ndarray], axis: int = 0) -> np.ndarray:
-    wi = W[i]
+def si(i: int, ui: List[np.ndarray], axis: int = 0) -> np.ndarray:
     udotu = ui * ui
     edotu = E[axis][i] * ui
-    return wi * (
+    return (
             3.0 * edotu / C
             + 9.0 * edotu**2 / (2.0 * C**2)
             - 3.0 * udotu / (2.0 * C**2)
@@ -38,8 +37,9 @@ def calculate_u(ns, rho: np.ndarray, axis: int = 0) -> np.ndarray:
     return r / rho
 
 
-def calculate_nieq(i, ui: List[np.ndarray], rho: np.ndarray, axis: int = 0):
-    pass
+def calculate_nieq(i: int, ui: List[np.ndarray], rho: np.ndarray, axis: int = 0):
+    wi = W[i]
+    return wi * rho * (1 + si(i, ui, axis))
 
 
 def stream(ns: List[np.ndarray]) -> List[np.ndarray]:
