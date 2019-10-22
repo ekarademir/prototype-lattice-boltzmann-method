@@ -12,7 +12,7 @@ W = [4 / 9] + [1 / 9] * 4 + [1 / 36] * 4
 DX = 1.0
 DT = 1.0
 C = DX / DT
-TAU = 1.0
+TAU = 10.0
 
 
 def si(i: int, ux: List[np.ndarray], uy: List[np.ndarray]) -> np.ndarray:
@@ -174,7 +174,7 @@ def test_stream():
 
 def main():
     # STEP 1: Initialize
-    rho = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    rho = np.random.rand(LATTICE_SIZE, LATTICE_SIZE)  #np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     ux = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     uy = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     # Discrete probablilities for each nine directions for each axis
@@ -200,24 +200,29 @@ def main():
     neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
 
     # Figure related plumbing
+    plt.ion()
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    # im = ax.imshow
+    im = ax.imshow(rho, extent=[0, LATTICE_SIZE, 0, LATTICE_SIZE], vmin=0, vmax=1)
 
-    # STEP 2: Streaming
-    ns = stream(ns)
+    for i in range(10):
+        fig.canvas.draw()
+        breakpoint()
+        # STEP 2: Streaming
+        ns = stream(ns)
 
-    # STEP 3: Compute macroscopic entities
-    rho = calculate_rho(ns)
-    ux = calculate_ui(ns, rho, axis=0)
-    uy = calculate_ui(ns, rho, axis=1)
+        # STEP 3: Compute macroscopic entities
+        rho = calculate_rho(ns)
+        ux = calculate_ui(ns, rho, axis=0)
+        uy = calculate_ui(ns, rho, axis=1)
+        im.set_data(rho)
 
-    # STEP 4: Compute equilibrium number density
-    for i in range(len(neq)):
-        neq[i] = calculate_nieq(i, ux[i], uy[i], rho)
-    
-    # STEP 5: Collision
-    ns = collide(ns, neq)
+        # STEP 4: Compute equilibrium number density
+        for i in range(len(neq)):
+            neq[i] = calculate_nieq(i, ux[i], uy[i], rho)
+        
+        # STEP 5: Collision
+        ns = collide(ns, neq)
 
 
 def tests():
