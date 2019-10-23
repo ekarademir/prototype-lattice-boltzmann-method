@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-LATTICE_SIZE = 50
+LATTICE_SIZE = 100
+Ax, Bx, Ay, By = 30, 60, 10, 15
 #     e0   e1   e2    e3    e4   e5    e6    e7    e8
 E = [
     [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],
@@ -14,7 +15,7 @@ W = [4 / 9] + [1 / 9] * 4 + [1 / 36] * 4
 DX = 1.0
 DT = 1.0
 C = DX / DT
-TAU = 10.0
+TAU = 0.001  # Should vary between 0 and 2
 
 
 def si(i: int, ux: List[np.ndarray], uy: List[np.ndarray]) -> np.ndarray:
@@ -41,7 +42,9 @@ def calculate_ui(ns, rho: np.ndarray, axis: int = 0) -> np.ndarray:
     return r / rho
 
 
-def calculate_nieq(i: int, ux: List[np.ndarray], uy: List[np.ndarray], rho: np.ndarray):
+def calculate_nieq(
+    i: int, ux: List[np.ndarray], uy: List[np.ndarray], rho: np.ndarray
+):
     wi = W[i]
     return wi * rho * (1 + si(i, ux, uy))
 
@@ -49,7 +52,7 @@ def calculate_nieq(i: int, ux: List[np.ndarray], uy: List[np.ndarray], rho: np.n
 def collide(ns: List[np.ndarray], neq: List[np.ndarray]) -> List[np.ndarray]:
     r = []
     for i, n in enumerate(ns):
-        r.append(n - (n - neq[i]) / TAU)
+        r.append(n + (neq[i] + n) * TAU)
     return r
 
 
@@ -140,52 +143,35 @@ def test_stream():
 
 def main():
     # STEP 1: Initialize
-    rho = np.random.rand(
-        LATTICE_SIZE, LATTICE_SIZE
-    )  # np.zeros((LATTICE_SIZE, LATTICE_SIZE))
-    rho[10:15, 10:15] = 1
+    rho = np.zeros((LATTICE_SIZE, LATTICE_SIZE))
     ux = np.zeros((LATTICE_SIZE, LATTICE_SIZE))
     uy = np.zeros((LATTICE_SIZE, LATTICE_SIZE))
-    ux[10:15, 10:15] = 0.1
-    uy[10:15, 10:15] = 0.1
     # Discrete probablilities for each nine directions for each axis
     ns = []
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq = []
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
-
+    neqs = []
+    for i in range(9):
+        n = np.zeros((LATTICE_SIZE, LATTICE_SIZE))
+        n[Ay:By, Ax:Bx] = 1 / 9
+        ns.append(n)
+        neq = np.zeros((LATTICE_SIZE, LATTICE_SIZE))
+        neqs.append(neq)
     # Figure related plumbing
     plt.ion()
     fig = plt.figure()
     ax1 = fig.add_subplot(211)
     im1 = ax1.imshow(
-        rho, extent=[0, LATTICE_SIZE, 0, LATTICE_SIZE], vmin=0, vmax=1
+        rho, extent=[0, LATTICE_SIZE, 0, LATTICE_SIZE], vmin=0, vmax=1,
+        interpolation='none'
     )
     ax2 = fig.add_subplot(212)
     X, Y = np.meshgrid(
         np.arange(0, LATTICE_SIZE, 1), np.arange(0, LATTICE_SIZE, 1)
     )
     im2 = ax2.quiver(X, Y, ux, uy)
+    fig.canvas.draw()
 
-    for i in range(10):
-        fig.canvas.draw()
-        breakpoint()
+    for i in range(100):
+        # breakpoint()
 
         # STEP 2: Streaming
         ns = stream(ns)
@@ -194,15 +180,19 @@ def main():
         rho = calculate_rho(ns)
         ux = calculate_ui(ns, rho, axis=0)
         uy = calculate_ui(ns, rho, axis=1)
+        rho = np.nan_to_num(rho)
+        ux = np.nan_to_num(ux)
+        uy = np.nan_to_num(uy)
         im1.set_data(rho)
         im2.set_UVC(ux, uy)
+        fig.canvas.draw()
 
         # STEP 4: Compute equilibrium number density
-        for i in range(len(neq)):
-            neq[i] = calculate_nieq(i, ux[i], uy[i], rho)
+        for i in range(len(neqs)):
+            neqs[i] = calculate_nieq(i, ux[i], uy[i], rho)
 
         # STEP 5: Collision
-        ns = collide(ns, neq)
+        ns = collide(ns, neqs)
 
 
 def tests():
