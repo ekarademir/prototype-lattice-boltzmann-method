@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 
 
 LATTICE_SIZE = 50
-#     e0   e1   e2    e3    e4   e5    e6    e7    e8  
-E = [[0.0, 1.0, 0.0, -1.0,  0.0, 1.0, -1.0, -1.0,  1.0],
-     [0.0, 0.0, 1.0,  0.0, -1.0, 1.0,  1.0, -1.0, -1.0]]
+#     e0   e1   e2    e3    e4   e5    e6    e7    e8
+E = [
+    [0.0, 1.0, 0.0, -1.0, 0.0, 1.0, -1.0, -1.0, 1.0],
+    [0.0, 0.0, 1.0, 0.0, -1.0, 1.0, 1.0, -1.0, -1.0],
+]
 W = [4 / 9] + [1 / 9] * 4 + [1 / 36] * 4
 DX = 1.0
 DT = 1.0
@@ -19,10 +21,10 @@ def si(i: int, ux: List[np.ndarray], uy: List[np.ndarray]) -> np.ndarray:
     udotu = ux * ux + uy * uy
     edotu = E[0][i] * ux + E[1][i] * uy
     return (
-            3.0 * edotu / C
-            + 9.0 * edotu**2 / (2.0 * C**2)
-            - 3.0 * udotu / (2.0 * C**2)
-        )
+        3.0 * edotu / C
+        + 9.0 * edotu ** 2 / (2.0 * C ** 2)
+        - 3.0 * udotu / (2.0 * C ** 2)
+    )
 
 
 def calculate_rho(ns) -> np.ndarray:
@@ -47,9 +49,7 @@ def calculate_nieq(i: int, ux: List[np.ndarray], uy: List[np.ndarray], rho: np.n
 def collide(ns: List[np.ndarray], neq: List[np.ndarray]) -> List[np.ndarray]:
     r = []
     for i, n in enumerate(ns):
-        r.append(
-            n - (n - neq[i]) / TAU
-        )
+        r.append(n - (n - neq[i]) / TAU)
     return r
 
 
@@ -103,8 +103,12 @@ def test_calculate_ui():
     expected_uy = np.zeros((2, 2))
     actual_ux = calculate_ui(specimen, 1.0, 0)
     actual_uy = calculate_ui(specimen, 1.0, 1)
-    np.testing.assert_array_equal(actual_ux, expected_ux, "ux calculation false")
-    np.testing.assert_array_equal(actual_uy, expected_uy, "uy calculation false")
+    np.testing.assert_array_equal(
+        actual_ux, expected_ux, "ux calculation false"
+    )
+    np.testing.assert_array_equal(
+        actual_uy, expected_uy, "uy calculation false"
+    )
 
 
 def test_calculate_rho():
@@ -115,66 +119,30 @@ def test_calculate_rho():
 
 
 def test_stream():
-    specimen = [np.array([
-        [1, 2, 3],
-        [4, 5, 6],
-        [7, 8, 9],
-    ])] * 9
+    specimen = [np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])] * 9
     expected = [
-        np.array([
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9],
-        ]),
-        np.array([
-            [1, 1, 2],
-            [4, 4, 5],
-            [7, 7, 8],
-        ]),
-        np.array([
-            [4, 5, 6],
-            [7, 8, 9],
-            [7, 8, 9],
-        ]),
-        np.array([
-            [2, 3, 3],
-            [5, 6, 6],
-            [8, 9, 9],
-        ]),
-        np.array([
-            [1, 2, 3],
-            [1, 2, 3],
-            [4, 5, 6],
-        ]),
-        np.array([
-            [1, 4, 5],
-            [4, 7, 8],
-            [7, 8, 9],
-        ]),
-        np.array([
-            [5, 6, 3],
-            [8, 9, 6],
-            [7, 8, 9],
-        ]),
-        np.array([
-            [1, 2, 3],
-            [2, 3, 6],
-            [5, 6, 9],
-        ]),
-        np.array([
-            [1, 2, 3],
-            [4, 1, 2],
-            [7, 4, 5],
-        ]),
+        np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+        np.array([[1, 1, 2], [4, 4, 5], [7, 7, 8]]),
+        np.array([[4, 5, 6], [7, 8, 9], [7, 8, 9]]),
+        np.array([[2, 3, 3], [5, 6, 6], [8, 9, 9]]),
+        np.array([[1, 2, 3], [1, 2, 3], [4, 5, 6]]),
+        np.array([[1, 4, 5], [4, 7, 8], [7, 8, 9]]),
+        np.array([[5, 6, 3], [8, 9, 6], [7, 8, 9]]),
+        np.array([[1, 2, 3], [2, 3, 6], [5, 6, 9]]),
+        np.array([[1, 2, 3], [4, 1, 2], [7, 4, 5]]),
     ]
     actual = stream(specimen)
     for i in range(len(specimen)):
-        np.testing.assert_array_equal(actual[i], expected[i], err_msg=f'For array at index {i}')
+        np.testing.assert_array_equal(
+            actual[i], expected[i], err_msg=f"For array at index {i}"
+        )
 
 
 def main():
     # STEP 1: Initialize
-    rho = np.random.rand(LATTICE_SIZE, LATTICE_SIZE)  #np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    rho = np.random.rand(
+        LATTICE_SIZE, LATTICE_SIZE
+    )  # np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     ux = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     uy = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
     # Discrete probablilities for each nine directions for each axis
@@ -203,11 +171,12 @@ def main():
     plt.ion()
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    im = ax.imshow(rho, extent=[0, LATTICE_SIZE, 0, LATTICE_SIZE], vmin=0, vmax=1)
+    im = ax.imshow(
+        rho, extent=[0, LATTICE_SIZE, 0, LATTICE_SIZE], vmin=0, vmax=1
+    )
 
     for i in range(10):
         fig.canvas.draw()
-        breakpoint()
         # STEP 2: Streaming
         ns = stream(ns)
 
@@ -220,7 +189,7 @@ def main():
         # STEP 4: Compute equilibrium number density
         for i in range(len(neq)):
             neq[i] = calculate_nieq(i, ux[i], uy[i], rho)
-        
+
         # STEP 5: Collision
         ns = collide(ns, neq)
 
@@ -231,6 +200,6 @@ def tests():
     test_calculate_rho()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
     # tests()
