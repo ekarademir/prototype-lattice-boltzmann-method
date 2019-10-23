@@ -142,41 +142,51 @@ def main():
     # STEP 1: Initialize
     rho = np.random.rand(
         LATTICE_SIZE, LATTICE_SIZE
-    )  # np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    ux = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
-    uy = np.ndarray((LATTICE_SIZE, LATTICE_SIZE))
+    )  # np.zeros((LATTICE_SIZE, LATTICE_SIZE))
+    rho[10:15, 10:15] = 1
+    ux = np.zeros((LATTICE_SIZE, LATTICE_SIZE))
+    uy = np.zeros((LATTICE_SIZE, LATTICE_SIZE))
+    ux[10:15, 10:15] = 0.1
+    uy[10:15, 10:15] = 0.1
     # Discrete probablilities for each nine directions for each axis
     ns = []
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    ns.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    ns.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
     neq = []
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
-    neq.append(np.ndarray((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
+    neq.append(np.zeros((LATTICE_SIZE, LATTICE_SIZE)))
 
     # Figure related plumbing
     plt.ion()
     fig = plt.figure()
-    ax = fig.add_subplot(111)
-    im = ax.imshow(
+    ax1 = fig.add_subplot(211)
+    im1 = ax1.imshow(
         rho, extent=[0, LATTICE_SIZE, 0, LATTICE_SIZE], vmin=0, vmax=1
     )
+    ax2 = fig.add_subplot(212)
+    X, Y = np.meshgrid(
+        np.arange(0, LATTICE_SIZE, 1), np.arange(0, LATTICE_SIZE, 1)
+    )
+    im2 = ax2.quiver(X, Y, ux, uy)
 
     for i in range(10):
         fig.canvas.draw()
+        breakpoint()
+
         # STEP 2: Streaming
         ns = stream(ns)
 
@@ -184,7 +194,8 @@ def main():
         rho = calculate_rho(ns)
         ux = calculate_ui(ns, rho, axis=0)
         uy = calculate_ui(ns, rho, axis=1)
-        im.set_data(rho)
+        im1.set_data(rho)
+        im2.set_UVC(ux, uy)
 
         # STEP 4: Compute equilibrium number density
         for i in range(len(neq)):
